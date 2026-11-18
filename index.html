@@ -1,0 +1,406 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex">
+<title>Bora Casa · Simulador</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Georama:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* Layout: faixa azul da marca no topo, painel de premissas fixo à esquerda, leitura em cartões à direita */
+:root{
+  color-scheme:light;
+  --azul:#345694; --ciano:#38BEDF; --laranja:#FF5C26; --creme:#FFF1D4;
+  --fundo:#FBF6EC; --papel:#FFFFFF; --tinta:#16202E; --mudo:#5D6576; --linha:#ECE2CC; --linha2:#F4EDDD;
+  --neg:#C2410C; --pos:#1F7A52;
+  --f:Georama,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fundo);color:var(--tinta);font:15px/1.5 var(--f);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+.topo{background:var(--azul);color:#fff}
+.topo .in{max-width:1240px;margin:0 auto;padding-block:22px 0;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.marca{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.marca svg{height:40px;width:auto;color:#fff;display:block}
+.marca .sep{width:1px;height:30px;background:rgba(255,255,255,.3)}
+.marca .ctx{font-size:14px;color:#D6E0F3;line-height:1.3}
+.marca .ctx b{display:block;color:#fff;font-weight:700;font-size:15px}
+nav{display:flex;gap:6px;margin-top:18px}
+nav button{background:none;border:0;color:#C9D6EE;font:600 14px var(--f);padding:12px 14px;border-bottom:3px solid transparent;cursor:pointer}
+nav button.on{color:#fff;border-color:var(--laranja)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--ciano);outline-offset:2px}
+main{max-width:1240px;margin:0 auto;padding-block:28px 64px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.aba{display:none}.aba.on{display:block}
+h1{font-weight:900;font-size:clamp(26px,3.4vw,34px);line-height:1.1;margin:0 0 6px;color:var(--azul);text-wrap:balance;letter-spacing:-.01em}
+h2{font-weight:800;font-size:18px;margin:0 0 4px;text-wrap:balance}
+.sub2{color:var(--mudo);font-size:14px;margin:0 0 16px}
+.lead{color:var(--mudo);margin:0 0 24px;max-width:68ch}
+.grid{display:grid;grid-template-columns:340px minmax(0,1fr);gap:24px;align-items:start}
+@media(max-width:940px){.grid{grid-template-columns:minmax(0,1fr)}}
+.painel{background:var(--papel);border:1px solid var(--linha);border-radius:18px;padding:6px 20px 20px;position:sticky;top:16px}
+@media(max-width:940px){.painel{position:static}}
+.bloco{padding-top:16px;border-top:1px solid var(--linha2);margin-top:16px}
+.bloco:first-child{border:0;margin-top:0}
+.eti{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--azul);margin:0 0 6px}
+label{display:block;font-size:13px;font-weight:600;margin:10px 0 5px;color:var(--mudo)}
+input,select{width:100%;padding:10px 12px;border:1px solid var(--linha);border-radius:10px;font:500 15px var(--f);background:#fff;color:var(--tinta);font-variant-numeric:tabular-nums}
+input.dec{text-align:right}
+input[readonly]{background:var(--linha2);color:var(--mudo)}
+.hint{font-size:12px;color:var(--mudo);margin-top:5px;line-height:1.4}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:flex;background:var(--linha2);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:none;border-radius:8px;padding:8px 6px;font:600 13px var(--f);cursor:pointer;color:var(--mudo)}
+.seg button.on{background:var(--azul);color:#fff}
+.col{display:grid;gap:20px;min-width:0}
+.card{background:var(--papel);border:1px solid var(--linha);border-radius:18px;padding:22px;min-width:0}
+.tres{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media(max-width:720px){.tres{grid-template-columns:minmax(0,1fr)}}
+.un{border-radius:18px;padding:18px 18px 14px;color:#fff;display:flex;flex-direction:column}
+.un .t{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;opacity:.9}
+.un .v{font-size:28px;font-weight:900;margin:6px 0 2px;letter-spacing:-.01em}
+.un .d{font-size:13px;opacity:.9;margin-bottom:10px}
+.un .l{font-size:13px;display:flex;justify-content:space-between;gap:10px;border-top:1px solid rgba(255,255,255,.28);padding:6px 0 0;margin-top:6px}
+.un .l b{font-weight:700}
+.u1{background:var(--ciano)}.u2{background:var(--laranja)}.u3{background:var(--azul)}
+.fluxo{display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,170px) minmax(0,1fr) minmax(130px,170px) minmax(0,1fr);align-items:center;margin-top:14px}
+.no{border-radius:14px;padding:16px 12px;text-align:center;color:#fff}
+.no b{display:block;font-size:16px;font-weight:900}
+.no span{font-size:12px;opacity:.92}
+.no.c{background:var(--ciano)}.no.b{background:var(--azul)}.no.p{background:var(--laranja)}
+.seta{padding:0 10px;text-align:center}
+.seta .v{font-size:14px;font-weight:800;line-height:1.25}
+.seta .s{font-size:12px;color:var(--mudo);line-height:1.3}
+.seta .linha{height:2px;background:var(--tinta);margin:8px 0;position:relative}
+.seta .linha::after{content:"";position:absolute;right:-1px;top:-5px;border-style:solid;border-width:6px 0 6px 9px;border-color:transparent transparent transparent var(--tinta)}
+.entrada{display:flex;justify-content:center}
+.entrada .pill{background:#EAF0FA;color:var(--azul);font-weight:700;font-size:13px;border-radius:99px;padding:6px 14px;text-align:center}
+.baixo{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
+.mini{border:1px solid var(--linha);border-radius:12px;padding:10px 14px;font-size:13px;color:var(--mudo)}
+.mini b{display:block;font-size:17px;font-weight:800;color:var(--tinta)}
+.mini.neg b{color:var(--neg)}
+.mini.res{background:var(--tinta);border-color:var(--tinta);color:var(--ciano)}
+.mini.res b{color:#fff}
+@media(max-width:720px){
+  .fluxo{grid-template-columns:minmax(0,1fr)}
+  .seta{padding:10px 0}
+  .seta .linha{width:2px;height:22px;margin:6px auto}
+  .seta .linha::after{right:-5px;top:auto;bottom:-3px;border-width:9px 6px 0 6px;border-color:var(--tinta) transparent transparent transparent}
+  .baixo{grid-template-columns:minmax(0,1fr)}
+}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--linha2);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+th{font-size:11.5px;color:var(--mudo);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+td.neg{color:var(--neg)} td.pos{color:var(--pos)}
+tr.tot td{font-weight:800;border-top:2px solid var(--tinta);border-bottom:0}
+tr.sel td{background:#FFF3EC}
+tr.sel td:first-child{box-shadow:inset 4px 0 0 var(--laranja)}
+.chip{display:inline-block;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;background:var(--laranja);color:#fff;border-radius:99px;padding:2px 8px;margin-left:6px;vertical-align:1px}
+.res2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
+@media(max-width:820px){.res2{grid-template-columns:minmax(0,1fr)}}
+.res2 h3{font-size:15px;margin:0 0 6px;display:flex;align-items:center;gap:8px}
+.res2 h3 i{width:10px;height:10px;border-radius:3px;display:inline-block}
+svg.ch{width:100%;height:auto;display:block}
+.leg{display:flex;gap:18px;font-size:13px;color:var(--mudo);margin-top:8px;flex-wrap:wrap}
+.leg i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:4px}
+.leitura p{margin:0 0 12px;max-width:72ch}
+.leitura p:last-child{margin:0}
+.alerta{background:#FFEDE4;border-radius:12px;padding:12px 14px;font-size:14px;color:#8A2E0B}
+.passos{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.passo{background:var(--papel);border:1px solid var(--linha);border-radius:16px;padding:18px}
+.passo b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--laranja);margin-bottom:6px}
+.aviso{background:var(--creme);border-radius:16px;padding:18px 20px;font-size:14px}
+.aviso ol{margin:8px 0 0;padding-left:20px}
+.aviso li{margin-bottom:4px}
+
+/* celular */
+@media(max-width:560px){
+  body{font-size:14px}
+  .topo .in{padding-block:16px 0}
+  .marca{gap:12px}.marca svg{height:30px}.marca .sep{display:none}.marca .ctx{flex-basis:100%}
+  .marca .data{margin-left:0;text-align:left}
+  .card{padding:16px;border-radius:14px}
+  .un .v,.h .v{font-size:22px}
+  .un .l{flex-wrap:wrap}
+  th,td{padding:8px 8px;font-size:13px}
+  .tw{margin:0 -16px;padding:0 16px}
+  .tw table td:first-child,.tw table th:first-child{position:sticky;left:0;background:var(--papel);z-index:1}
+  .row2{grid-template-columns:1fr 1fr}
+  nav button{padding:10px 10px}
+  .cl{grid-template-columns:minmax(0,96px) minmax(0,1fr) 50px}
+  .leg em{display:none}
+  .filtros .esp{margin-left:0}
+}
+</style>
+</head><body>
+
+<header class="topo"><div class="in">
+  <div class="marca"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 603.7 206.7" role="img" aria-label="Bora"><path fill="currentColor" transform="matrix(1 0 0 -1 -203.72 450.65)" d="M543.32 397.66 L596.31 397.66 L596.31 380.29 C607.21 392.65 621.04 400.01 636.65 400.01 L643.42 400.01 L643.42 345.55 L636.65 345.55 C609.86 345.55 596.31 333.48 596.31 314.63 L596.31 247.51 L561.73 247.51 C551.56 247.51 543.32 255.75 543.32 265.91 Z Z M645.77 322.58 C645.77 367.33 676.10 401.19 716.73 401.19 C731.45 401.19 744.11 396.48 754.41 388.24 L754.41 397.66 L789.00 397.66 C799.17 397.66 807.41 389.42 807.41 379.25 L807.41 247.51 L754.41 247.51 L754.41 256.93 C744.11 248.68 731.45 243.97 716.73 243.97 C676.10 243.97 645.77 277.83 645.77 322.58 M754.41 322.58 C754.41 338.19 742.93 349.96 727.33 349.96 C711.72 349.96 700.24 338.19 700.24 322.58 C700.24 306.98 711.72 295.20 727.33 295.20 C742.93 295.20 754.41 306.98 754.41 322.58 Z M343.16 355.26 C355.52 363.51 363.77 379.99 363.77 397.95 C363.77 428.57 339.33 450.65 308.12 450.65 L221.10 450.65 C211.50 450.65 203.72 442.87 203.72 433.27 L203.72 400.01 L292.49 400.01 C303.36 400.01 310.04 387.49 299.72 375.28 L203.72 375.28 L203.72 327.59 L300.47 327.59 C313.34 327.59 321.90 311.79 308.22 298.15 L203.72 298.15 L203.72 264.89 C203.72 255.29 211.50 247.51 221.10 247.51 L314.60 247.51 C347.87 247.51 372.89 270.17 372.89 302.86 C372.89 326.12 360.53 347.61 343.16 355.26 Z M457.51 401.19 C410.99 401.19 375.96 367.33 375.96 322.58 C375.96 277.83 410.99 243.97 457.51 243.97 C504.03 243.97 539.06 277.83 539.06 322.58 C539.06 367.33 504.03 401.19 457.51 401.19 M457.51 279.33 C431.14 279.33 409.68 300.69 409.49 327.01 L421.15 327.01 C421.34 307.12 437.57 290.99 457.51 290.99 C477.45 290.99 493.68 307.12 493.86 327.01 L505.52 327.01 C505.34 300.69 483.87 279.33 457.51 279.33 Z"/></svg><span class="sep"></span><div class="ctx"><b>Simulador de financiamento</b>Casas da Prosperar Construtora</div></div>
+  <nav id="nav"><button data-a="sim" class="on">Simulador</button><button data-a="como">Como funciona</button></nav>
+</div></header>
+
+<main>
+<section class="aba on" id="sim">
+  <h1>Monte a venda de uma casa</h1>
+  <p class="lead">Coloque o valor da casa e as condições. O simulador mostra a parcela do comprador, quanto e quando a Prosperar recebe, e quanto fica com o Banco BORA.</p>
+  <div class="grid">
+    <aside class="painel">
+      <div class="bloco">
+        <p class="eti">A casa</p>
+        <label for="valor">Valor da casa (R$)</label><input id="valor" class="dec" inputmode="decimal" value="600.000,00">
+        <div class="row2">
+          <div><label for="ent">Entrada (%)</label><input id="ent" class="dec" inputmode="decimal" value="15,00"></div>
+          <div><label for="entR">Entrada (R$)</label><input id="entR" class="dec" readonly></div>
+        </div>
+        <label for="fgts">Parte da entrada com FGTS (R$)</label><input id="fgts" class="dec" inputmode="decimal" value="0,00">
+        <label for="entParc">Entrada em dinheiro paga à Prosperar</label>
+        <select id="entParc"><option value="1">À vista, na assinatura</option><option value="6">Em 6 parcelas</option><option value="12">Em 12 parcelas</option><option value="24">Em 24 parcelas</option></select>
+      </div>
+      <div class="bloco">
+        <p class="eti">O financiamento</p>
+        <label>Parcelas</label>
+        <div class="seg" id="sisSeg"><button data-v="price" class="on">Fixas (Price)</button><button data-v="sac">Decrescentes (SAC)</button></div>
+        <div class="row2">
+          <div><label for="prazo">Prazo (meses)</label><input id="prazo" class="dec" type="number" min="12" max="420" step="12" value="360"></div>
+          <div><label for="tj">Juros (% a.m.)</label><input id="tj" class="dec" inputmode="decimal" value="1,30"></div>
+        </div>
+        <div class="hint" id="tjTxt"></div>
+        <label for="ccb">Emissão da CCB (% do financiado)</label><input id="ccb" class="dec" inputmode="decimal" value="1,00">
+        <div class="hint">Custo do contrato de financiamento, pago uma vez na assinatura. Boleto e liquidação: R$ 1,05 por parcela.</div>
+      </div>
+      <div class="bloco">
+        <p class="eti">Como o BORA paga a Prosperar</p>
+        <select id="modo" aria-label="Forma de pagamento à Prosperar"><option value="cdi">Mês a mês, com juros de CDI</option><option value="mensal">Mês a mês, sem juros</option><option value="vista">À vista, com antecipação</option><option value="parte">Parte à vista, parte mês a mês</option></select>
+        <div id="boxCdi"><label for="rcdi">Juros pagos à Prosperar (% do CDI)</label><input id="rcdi" class="dec" inputmode="decimal" value="100,00"><div class="hint" id="rcdiTxt"></div></div>
+        <div id="boxParte" hidden><label for="parte">Parte paga à vista (%)</label><input id="parte" class="dec" inputmode="decimal" value="50,00"></div>
+        <div id="boxVista" hidden>
+          <label for="spr">Antecipação: CDI + (% a.m.)</label><input id="spr" class="dec" inputmode="decimal" value="0,30">
+          <div class="hint" id="antTxt"></div>
+          <label for="pcdi">Custo do dinheiro do BORA (% do CDI)</label><input id="pcdi" class="dec" inputmode="decimal" value="100,00">
+          <div class="hint">Para pagar à vista o BORA usa dinheiro de terceiros (Trinus, sócio ou fundo).</div>
+        </div>
+      </div>
+      <div class="bloco">
+        <p class="eti">Premissas de mercado</p>
+        <div class="row2">
+          <div><label for="cdi">CDI (% a.a.)</label><input id="cdi" class="dec" value="13,65" readonly></div>
+          <div><label for="ipca">IPCA (% a.a.)</label><input id="ipca" class="dec" value="4,63" readonly></div>
+        </div>
+        <div class="hint">CDI de 12/11/2026 (Banco Central). IPCA acumulado até outubro de 2026 (IBGE).</div>
+      </div>
+    </aside>
+
+    <div class="col">
+      <div class="tres" id="tres"></div>
+      <div class="card">
+        <h2>Para onde vai o dinheiro</h2>
+        <p class="sub2" id="fluxoSub"></p>
+        <div class="entrada" id="entradaFluxo"></div>
+        <div class="fluxo" id="fluxo"></div>
+        <div class="baixo" id="baixo"></div>
+      </div>
+      <div class="card">
+        <h2>Quanto o BORA paga à Prosperar</h2>
+        <p class="sub2">Valor financiado: <b id="finTxt"></b>. Deságio é quanto a Prosperar deixa de receber em dinheiro de hoje, descontado pelo CDI.</p>
+        <div class="tw"><table id="tabPag"></table></div>
+        <p class="hint" id="pagNota"></p>
+      </div>
+      <div class="card">
+        <h2>Resultado de cada um</h2>
+        <p class="sub2">No prazo todo do contrato.</p>
+        <div class="res2" id="res"></div>
+      </div>
+      <div class="card">
+        <h2>O caixa no tempo</h2>
+        <p class="sub2">Quanto cada um acumulou, mês a mês.</p>
+        <svg class="ch" id="chCaixa" viewBox="0 0 760 250" aria-label="Caixa acumulado"></svg>
+        <div class="leg"><span><i style="background:var(--laranja)"></i>Prosperar</span><span><i style="background:var(--azul)"></i>Banco BORA</span></div>
+      </div>
+      <div class="card leitura">
+        <h2>Leitura da operação</h2>
+        <div id="leitura" style="margin-top:10px"></div>
+      </div>
+      <div class="card">
+        <h2>Ano a ano</h2>
+        <div class="tw"><table id="anos"></table></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="aba" id="como">
+  <h1>Como funciona</h1>
+  <p class="lead">A Prosperar vende a casa. O Banco BORA financia o comprador e assume a dívida com a Prosperar, que recebe mês a mês ou adiantado.</p>
+  <div class="passos">
+    <div class="passo"><b>Comprador</b>Dá a entrada (dinheiro, FGTS ou os dois) e assina a CCB com alienação fiduciária da casa.</div>
+    <div class="passo"><b>Banco BORA</b>Aprova o crédito, emite a CCB, cobra a parcela e fica com a diferença entre os juros do comprador e o que paga à Prosperar.</div>
+    <div class="passo"><b>Prosperar</b>Recebe a entrada na assinatura e o valor financiado do BORA: mês a mês com CDI, mês a mês sem juros, ou adiantado com desconto.</div>
+    <div class="passo"><b>Operação</b>FinSquad (Finscale) no dia a dia, Hub360 na tecnologia, Trinus na licença e no funding.</div>
+  </div>
+  <div class="card" style="margin-top:20px">
+    <h2>As formas de pagar a Prosperar</h2>
+    <div class="leitura" style="margin-top:10px">
+      <p><b>Mês a mês, com juros de CDI.</b> O BORA deve à Prosperar o valor financiado e paga em parcelas, com juros de um percentual do CDI sobre o que ainda deve. A 100% do CDI não há deságio. O BORA não precisa de dinheiro próprio e ganha a diferença de taxa.</p>
+      <p><b>Mês a mês, sem juros.</b> O BORA repassa o valor financiado dividido pelo prazo. A Prosperar recebe o valor nominal cheio, mas espera: o deságio é quanto esse dinheiro perde para o CDI no tempo.</p>
+      <p><b>À vista, com antecipação.</b> O BORA traz os repasses para hoje, descontando CDI mais um spread, e paga na assinatura. O deságio é o desconto. O BORA pega dinheiro emprestado para isso.</p>
+    </div>
+  </div>
+  <div class="aviso" style="margin-top:20px"><b>A validar antes de vender</b>
+    <ol>
+      <li>FGTS só entra em operação do SFH, com agente financeiro habilitado. Confirmar com a Trinus.</li>
+      <li>Seguros MIP e DFI são obrigatórios no crédito imobiliário e ficaram fora desta versão.</li>
+      <li>Registro da alienação fiduciária em cartório não está na conta.</li>
+      <li>Mínimos mensais da Trinus (CaaS e BaaS) ficam no painel do BORA, porque se dividem entre os contratos.</li>
+    </ol>
+  </div>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const num=s=>parseFloat(String(s).replace(/\./g,'').replace(',','.'))||0;
+const F2=v=>v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const R=v=>(v<0?'− ':'')+'R$ '+F2(Math.abs(v));
+const R0=v=>(v<0?'− ':'')+'R$ '+Math.abs(v).toLocaleString('pt-BR',{maximumFractionDigits:0});
+const P2=v=>F2(v);
+const BOL=1.05;
+let sis='price';
+
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('on',x===b));document.querySelectorAll('.aba').forEach(s=>s.classList.toggle('on',s.id===b.dataset.a));});
+document.querySelectorAll('#sisSeg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#sisSeg button').forEach(x=>x.classList.toggle('on',x===b));sis=b.dataset.v;render();});
+document.querySelectorAll('input.dec:not([type=number])').forEach(el=>{
+  el.addEventListener('blur',()=>{if(!el.readOnly)el.value=F2(num(el.value));render();});
+  el.addEventListener('focus',()=>setTimeout(()=>el.select(),0));
+});
+document.querySelectorAll('input,select').forEach(el=>el.addEventListener(el.tagName==='SELECT'?'change':'input',render));
+
+function get(){
+  const p={};['valor','ent','fgts','tj','parte','pcdi','spr','ccb','cdi','ipca','rcdi'].forEach(k=>p[k]=num($(k).value));
+  p.n=Math.max(12,Math.min(420,Math.round(+$('prazo').value||360)));
+  p.modo=$('modo').value; p.entParc=+$('entParc').value;
+  p.entrada=p.valor*p.ent/100; p.fgts=Math.min(p.fgts,p.entrada); p.dinheiro=p.entrada-p.fgts; p.P=p.valor-p.entrada;
+  p.i=p.tj/100; p.cdim=Math.pow(1+p.cdi/100,1/12)-1; p.tcap=p.cdim*p.pcdi/100; p.des=p.cdim+p.spr/100;
+  p.tr=p.cdim*p.rcdi/100; p.ipm=Math.pow(1+p.ipca/100,1/12)-1;
+  return p;
+}
+const fracao=(p,modo)=>modo==='vista'?1:modo==='parte'?Math.min(1,Math.max(0,p.parte/100)):0;
+
+function calc(p,modo){
+  modo=modo||p.modo;
+  const n=p.n,P=p.P,i=p.i,f=fracao(p,modo); let saldo=P; const cr=[];
+  for(let k=1;k<=n;k++){const juros=saldo*i,rest=n-k+1;
+    const amort=sis==='sac'?saldo/rest:(i?saldo*i/(1-Math.pow(1+i,-rest)):saldo/rest)-juros;
+    cr.push({juros,amort,parc:juros+amort,saldo:saldo-amort});saldo-=amort;}
+  const rep=P/n, pv=p.des?rep*(1-Math.pow(1+p.des,-n))/p.des:P;
+  const vista=f*pv, desconto=f*(P-pv), repM=(1-f)*rep, ccb=P*p.ccb/100;
+  const pro=new Array(n+1).fill(0), ban=new Array(n+1).fill(0), bp=new Array(n+1).fill(0);
+  pro[0]=p.fgts+(p.entParc===1?p.dinheiro:0)+vista; bp[0]=vista;
+  if(p.entParc>1)for(let k=1;k<=p.entParc;k++)pro[k]+=p.dinheiro/p.entParc;
+  ban[0]=-ccb;
+  let divida=vista,jf=0,quita=vista?null:0,sd=P,jcdi=0,rep1=repM,repT=vista;
+  for(let k=1;k<=n;k++){
+    let rk=repM;
+    if(modo==='cdi'){const jj=sd*p.tr,rest=n-k+1;const am=sis==='sac'?sd/rest:(p.tr?sd*p.tr/(1-Math.pow(1+p.tr,-rest)):sd/rest)-jj;rk=jj+am;jcdi+=jj;sd-=am;if(k===1)rep1=rk;}
+    pro[k]+=rk; bp[k]=rk; repT+=rk;
+    let caixa=cr[k-1].parc-rk-BOL;
+    if(divida>0){const j=divida*p.tcap;jf+=j;divida+=j;const pg=Math.min(divida,Math.max(0,caixa));divida-=pg;caixa-=pg;if(divida<=0.005&&quita===null)quita=k;}
+    ban[k]=caixa;
+  }
+  const juros=cr.reduce((s,c)=>s+c.juros,0), bol=BOL*n;
+  const fin=juros+desconto-jf-ccb-bol-jcdi;
+  const disc=(a,r)=>a.reduce((s,v,k)=>s+v/Math.pow(1+r,k),0);
+  const bpVP=disc(bp,p.cdim);
+  return {modo,f,cr,rep,pv,vista,desconto,repM,ccb,bol,jf,juros,fin,pro,ban,divida,quita,jcdi,rep1,repT,bpVP,desagio:P-bpVP,
+    total:cr.reduce((s,c)=>s+c.parc,0), proTot:pro.reduce((s,v)=>s+v,0), finReal:disc(ban,p.ipm)};
+}
+const un=(c,t,v,d,linhas)=>`<div class="un ${c}"><div class="t">${t}</div><div class="v">${v}</div><div class="d">${d}</div>${linhas.map(l=>`<div class="l"><span>${l[0]}</span><b>${l[1]}</b></div>`).join('')}</div>`;
+const nomeModo={cdi:'Mês a mês, com CDI',mensal:'Mês a mês, sem juros',vista:'À vista, com antecipação',parte:'Parte à vista'};
+
+function render(){
+  const p=get(), r=calc(p), v=r.f>0;
+  $('entR').value=F2(p.entrada);
+  $('boxVista').hidden=!v; $('boxParte').hidden=p.modo!=='parte'; $('boxCdi').hidden=p.modo!=='cdi';
+  $('tjTxt').textContent=`${P2((Math.pow(1+p.i,12)-1)*100)}% ao ano. O CDI está em ${P2(p.cdim*100)}% ao mês.`;
+  $('rcdiTxt').textContent=`Hoje: ${P2(p.tr*100)}% a.m. sobre o que o BORA ainda deve.`;
+  $('antTxt').textContent=`Hoje: ${P2(p.des*100)}% a.m.`;
+  const p1=r.cr[0].parc, ult=r.cr[p.n-1].parc, sac=sis==='sac';
+  const repTxt=r.f===1?'nada':R0(p.modo==='cdi'?r.rep1:r.repM)+(sac&&p.modo==='cdi'?' no 1º mês':'');
+  $('tres').innerHTML=
+    un('u1','Comprador',R0(p1),sac?'1ª parcela, caindo até '+R0(ult):'por mês, fixa',[['financiado',R0(p.P)],['prazo',p.n+' meses'],['total pago',R0(r.total+p.entrada)]])+
+    un('u2','Prosperar',R0(r.proTot),'recebe pela casa',[['na assinatura',R0(r.pro[0])],['por mês',repTxt],['deságio',r.desagio>0.5?R0(r.desagio):'nenhum']])+
+    un('u3','Banco BORA',R0(r.fin),'fica no prazo todo',[['juros do comprador',R0(r.juros)],['dinheiro próprio',v?R0(r.vista):'nenhum'],['em dinheiro de hoje',R0(r.finReal)]]);
+
+  $('fluxoSub').textContent='Forma escolhida: '+nomeModo[p.modo].toLowerCase()+(p.modo==='cdi'?` a ${P2(p.rcdi)}% do CDI`:'')+'.';
+  $('entradaFluxo').innerHTML=`<span class="pill">Entrada de ${R0(p.entrada)}${p.fgts?' (FGTS '+R0(p.fgts)+')':''}: do comprador direto para a Prosperar, ${p.entParc===1?'na assinatura':'em '+p.entParc+' parcelas'}</span>`;
+  let pagTxt,pagSub;
+  if(r.f===1){pagTxt=`${R0(r.vista)} à vista`;pagSub=`deságio de ${R0(r.desconto)}`;}
+  else if(r.f>0){pagTxt=`${R0(r.vista)} + ${p.n}x ${R0(r.repM)}`;pagSub=`deságio de ${R0(r.desagio)}`;}
+  else if(p.modo==='cdi'){pagTxt=`${p.n}x ${R0(r.rep1)}${sac?' (1ª)':''}`;pagSub=`juros de ${P2(p.rcdi)}% do CDI`;}
+  else{pagTxt=`${p.n}x ${R0(r.repM)}`;pagSub=`sem juros, deságio de ${R0(r.desagio)}`;}
+  $('fluxo').innerHTML=`<div class="no c"><b>Comprador</b><span>assina a CCB</span></div>
+    <div class="seta"><div class="v">${p.n}x ${R0(p1)}${sac?' (1ª)':''}</div><div class="linha"></div><div class="s">a ${P2(p.tj)}% a.m.</div></div>
+    <div class="no b"><b>Banco BORA</b><span>financia e assume a dívida</span></div>
+    <div class="seta"><div class="v">${pagTxt}</div><div class="linha"></div><div class="s">${pagSub}</div></div>
+    <div class="no p"><b>Prosperar</b><span>vende a casa</span></div>`;
+  $('baixo').innerHTML=`<div class="mini neg">Trinus: CCB ${P2(p.ccb)}% e boletos<b>− ${R0(r.ccb+r.bol)}</b></div>
+    ${v?`<div class="mini neg">Juros do dinheiro emprestado<b>− ${R0(r.jf)}</b></div>`:p.modo==='cdi'?`<div class="mini neg">Juros pagos à Prosperar<b>− ${R0(r.jcdi)}</b></div>`:`<div class="mini">Dinheiro próprio do BORA<b>nenhum</b></div>`}
+    <div class="mini res">Fica no BORA<b>${R0(r.fin)}</b></div>`;
+
+  $('finTxt').textContent=R(p.P);
+  const formas=['cdi','mensal','vista']; if(p.modo==='parte')formas.push('parte');
+  let t='<tr><th>Forma</th><th>Na assinatura</th><th>Por mês</th><th>Total pago</th><th>Valor hoje</th><th>Deságio</th><th>Deságio %</th></tr>';
+  formas.forEach(m=>{const g=calc(p,m);
+    const pm=g.f===1?'—':R0(m==='cdi'?g.rep1:g.repM)+(sac&&m==='cdi'?' (1º)':'');
+    const dg=g.desagio, cls=dg>0.5?'neg':dg<-0.5?'pos':'';
+    t+=`<tr class="${m===p.modo?'sel':''}"><td>${nomeModo[m]}${m==='cdi'?' ('+P2(p.rcdi)+'%)':''}${m==='parte'?' ('+P2(p.parte)+'%)':''}${m===p.modo?'<span class="chip">escolhida</span>':''}</td>
+      <td>${R0(g.vista)}</td><td>${pm}</td><td>${R0(g.repT)}</td><td>${R0(g.bpVP)}</td><td class="${cls}">${Math.abs(dg)<0.5?'nenhum':R0(dg)}</td><td class="${cls}">${Math.abs(dg)<0.5?'0,00':P2(dg/p.P*100)}%</td></tr>`;});
+  $('tabPag').innerHTML=t;
+  $('pagNota').textContent=`Mês a mês sem juros: a Prosperar recebe ${R0(p.P)} em ${p.n} meses e perde o CDI (${P2(p.cdim*100)}% ao mês) sobre o que ainda não recebeu. À vista: desconto a CDI + ${P2(p.spr)}% a.m. (${P2(p.des*100)}% a.m.).`;
+
+  $('res').innerHTML=`<div><h3><i style="background:var(--laranja)"></i>Prosperar</h3><table>
+    <tr><td>Entrada${p.fgts?' (com FGTS)':''}</td><td>${R(p.entrada)}</td></tr>
+    <tr><td>Valor financiado pelo BORA</td><td>${R(p.P)}</td></tr>
+    ${p.modo==='cdi'?`<tr><td>Juros do BORA (${P2(p.rcdi)}% do CDI)</td><td class="pos">+ ${R(r.jcdi)}</td></tr>`:''}
+    ${v?`<tr><td>Deságio da antecipação</td><td class="neg">− ${R(r.desconto)}</td></tr>`:''}
+    <tr class="tot"><td>Recebe no total</td><td>${R(r.proTot)}</td></tr></table></div>
+  <div><h3><i style="background:var(--azul)"></i>Banco BORA</h3><table>
+    <tr><td>Juros pagos pelo comprador</td><td>${R(r.juros)}</td></tr>
+    ${p.modo==='cdi'?`<tr><td>Juros pagos à Prosperar</td><td class="neg">− ${R(r.jcdi)}</td></tr>`:''}
+    ${v?`<tr><td>Receita da antecipação</td><td class="pos">+ ${R(r.desconto)}</td></tr><tr><td>Juros do dinheiro emprestado</td><td class="neg">− ${R(r.jf)}</td></tr>`:''}
+    <tr><td>Emissão da CCB (${P2(p.ccb)}%)</td><td class="neg">− ${R(r.ccb)}</td></tr>
+    <tr><td>Boletos e liquidação</td><td class="neg">− ${R(r.bol)}</td></tr>
+    <tr class="tot"><td>Fica no BORA</td><td>${R(r.fin)}</td></tr></table></div>`;
+
+  chart(p,r);
+
+  const custo=p.modo==='cdi'?p.tr:p.tcap, spread=p.i-custo;
+  let L=`<p><b>Comprador.</b> Financia ${R0(p.P)} em ${p.n} parcelas ${sac?'decrescentes, de '+R0(p1)+' a '+R0(ult):'fixas de '+R0(p1)}, a ${P2(p.tj)}% ao mês. Paga ${R0(r.juros)} de juros no prazo todo.</p>`;
+  if(p.modo==='cdi') L+=`<p><b>Prosperar.</b> Recebe ${R0(r.pro[0])} na assinatura. O BORA deve ${R0(p.P)} a ela e paga ${R0(r.rep1)} por mês${sac?' no começo':''}, com juros de ${P2(p.rcdi)}% do CDI. ${r.desagio>0.5?'Deságio de '+R0(r.desagio)+' em dinheiro de hoje.':'Sem deságio: em dinheiro de hoje, recebe o valor cheio.'}</p>
+    <p><b>Banco BORA.</b> Não usa dinheiro próprio: a parcela do comprador paga o repasse. Ganha a diferença entre ${P2(p.tj)}% e ${P2(p.tr*100)}% ao mês e fica com ${R0(r.fin)}.</p>`;
+  else if(r.f===0) L+=`<p><b>Prosperar.</b> Recebe ${R0(r.pro[0])} na assinatura e ${R0(r.repM)} por mês, sem juros, até o fim do prazo. Deságio de ${R0(r.desagio)} em dinheiro de hoje (${P2(r.desagio/p.P*100)}% do financiado).</p><p><b>Banco BORA.</b> Não usa dinheiro próprio e fica com todos os juros: ${R0(r.fin)}.</p>`;
+  else L+=`<p><b>Prosperar.</b> Recebe ${R0(r.pro[0])} na assinatura${r.repM?' e '+R0(r.repM)+' por mês':''}. Deságio de ${R0(r.desagio)} (${P2(r.desagio/p.P*100)}% do financiado). ${p.n>=180?'Em prazo longo o deságio pesa: quanto mais longe o repasse, menos ele vale hoje.':''}</p>
+    <p><b>Banco BORA.</b> Pega ${R0(r.vista)} a ${P2(p.tcap*100)}% a.m. e paga ${R0(r.jf)} de juros. ${r.divida>1?'Com essas taxas a dívida não fecha no prazo: sobram '+R0(r.divida)+'.':'Quita a dívida no mês '+r.quita+'.'}</p>`;
+  if(spread<=0) L+=`<p class="alerta"><b>O BORA perde dinheiro com essas taxas.</b> Os juros do comprador (${P2(p.tj)}% a.m.) não cobrem o custo de ${P2(custo*100)}% a.m. Suba os juros ou baixe o percentual do CDI.</p>`;
+  L+=`<p style="color:var(--mudo);font-size:13px">Fora da conta: seguros MIP e DFI, registro em cartório, mínimos mensais da Trinus, tecnologia, FinSquad, impostos e inadimplência.</p>`;
+  $('leitura').innerHTML=L;
+
+  let a='<tr><th>Ano</th><th>Parcela média</th><th>Juros do comprador</th><th>Prosperar recebe</th><th>BORA fica</th><th>Saldo devedor</th></tr>';
+  const anos=Math.ceil(p.n/12);
+  for(let y=0;y<anos;y++){const m=r.cr.slice(y*12,y*12+12);
+    const pr=r.pro.slice(y*12+1,y*12+13).reduce((s,x)=>s+x,0)+(y===0?r.pro[0]:0);
+    const bn=r.ban.slice(y*12+1,y*12+13).reduce((s,x)=>s+x,0)+(y===0?r.ban[0]:0);
+    if(y<5||y%5===4||y===anos-1)a+=`<tr><td>${y+1}</td><td>${R0(m.reduce((s,c)=>s+c.parc,0)/m.length)}</td><td>${R0(m.reduce((s,c)=>s+c.juros,0))}</td><td>${R0(pr)}</td><td>${R0(bn)}</td><td>${R0(Math.max(0,m[m.length-1].saldo))}</td></tr>`;}
+  $('anos').innerHTML=a;
+}
+function chart(p,r){
+  const n=p.n,W=760,H=250,pl=78,pr=14,pt=14,pb=30;
+  const ac=a=>{let s=0;return a.map(v=>s+=v)}, A=ac(r.pro), B=ac(r.ban);
+  const all=[...A,...B],mx=Math.max(0,...all),mn=Math.min(0,...all),sp=(mx-mn)||1;
+  const X=k=>pl+(W-pl-pr)*k/n,Y=v=>pt+(H-pt-pb)*(mx-v)/sp;
+  let s='';
+  for(let g=0;g<=4;g++){const v=mn+sp*g/4;s+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="#ECE2CC"/><text x="${pl-8}" y="${Y(v)+4}" font-size="11" text-anchor="end" fill="#5D6576" font-family="Georama,sans-serif">${(v/1e3).toLocaleString('pt-BR',{maximumFractionDigits:0})} mil</text>`;}
+  if(mn<0)s+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(0)}" y2="${Y(0)}" stroke="#16202E"/>`;
+  const st=Math.max(1,Math.round(n/12/6));for(let y=0;y<=n/12;y+=st)s+=`<text x="${X(y*12)}" y="${H-8}" font-size="11" text-anchor="middle" fill="#5D6576" font-family="Georama,sans-serif">ano ${y}</text>`;
+  [[A,'#FF5C26'],[B,'#345694']].forEach(([d,c])=>{s+=`<polyline fill="none" stroke="${c}" stroke-width="2.5" stroke-linejoin="round" points="${d.map((v,k)=>X(k).toFixed(1)+','+Y(v).toFixed(1)).join(' ')}"/><circle cx="${X(n)}" cy="${Y(d[n])}" r="4" fill="${c}"/>`;});
+  $('chCaixa').innerHTML=s;
+}
+render();
+</script>
+</body></html>
